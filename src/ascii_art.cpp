@@ -22,34 +22,18 @@ void processImage(const AsciiArtParams &params)
         img = resizeImage(img, 1.0f, params.aspect_ratio);
     }
 
-    // Check if we should output as text or image
-    if (params.output_path.empty() || params.output_path.substr(params.output_path.size() - 4) == ".txt")
-    {
-        // Generate ASCII text
-        std::string ascii_text = generateAsciiText(img, params);
+    // Generate ASCII text
+    std::string ascii_text = generateAsciiText(img, params);
 
-        // Print to console if no output path
-        if (params.output_path.empty())
-        {
-            std::cout << ascii_text << std::endl;
-        }
-        else
-        {
-            // Save to file
-            saveOutputText(ascii_text, params.output_path);
-        }
+    // Print to console if no output path
+    if (params.output_path.empty())
+    {
+        std::cout << ascii_text << std::endl;
     }
     else
     {
-        // Generate ASCII art as an image
-        std::vector<uint8_t> ascii_img = generateAsciiArt(img, params);
-
-        // Calculate output dimensions
-        int out_w = (img.width / params.block_width) * params.block_width;
-        int out_h = (img.height / params.block_height) * params.block_height;
-
-        // Save the image
-        saveOutputImage(ascii_img, out_w, out_h, params.output_path);
+        // Save to file
+        saveOutputText(ascii_text, params.output_path);
     }
 }
 
@@ -154,78 +138,6 @@ char selectAsciiChar(const BlockInfo &block_info, const AsciiArtParams &params)
     char_index = std::min(char_index, params.ascii_chars.size() - 1);
 
     return params.ascii_chars[params.invert_color ? params.ascii_chars.size() - 1 - char_index : char_index];
-}
-
-// Generate ASCII art as an image
-std::vector<uint8_t> generateAsciiArt(const Image &img, const AsciiArtParams &params)
-{
-    int out_w = (img.width / params.block_width) * params.block_width;
-    int out_h = (img.height / params.block_height) * params.block_height;
-
-    out_w = std::max(out_w, 1);
-    out_h = std::max(out_h, 1);
-
-    std::vector<uint8_t> ascii_img(out_w * out_h * 3, 0);
-
-    // Generate ASCII art
-    for (int y = 0; y < out_h; y += params.block_height)
-    {
-        for (int x = 0; x < out_w; x += params.block_width)
-        {
-            BlockInfo block_info = calculateBlockInfo(img, x, y, params.block_width, params.block_height, params);
-            char ascii_char = selectAsciiChar(block_info, params);
-
-            // Calculate average color for this block
-            std::vector<uint8_t> avg_color = {255, 255, 255};
-            if (params.color && block_info.pixel_count > 0)
-            {
-                avg_color[0] = static_cast<uint8_t>(block_info.sum_color[0] / block_info.pixel_count);
-                avg_color[1] = static_cast<uint8_t>(block_info.sum_color[1] / block_info.pixel_count);
-                avg_color[2] = static_cast<uint8_t>(block_info.sum_color[2] / block_info.pixel_count);
-
-                if (params.invert_color)
-                {
-                    avg_color[0] = 255 - avg_color[0];
-                    avg_color[1] = 255 - avg_color[1];
-                    avg_color[2] = 255 - avg_color[2];
-                }
-            }
-
-            // For now, just fill the block with a color based on the brightness
-            for (int dy = 0; dy < params.block_height; dy++)
-            {
-                for (int dx = 0; dx < params.block_width; dx++)
-                {
-                    int ix = x + dx;
-                    int iy = y + dy;
-
-                    if (ix >= out_w || iy >= out_h)
-                    {
-                        continue;
-                    }
-
-                    int img_index = (iy * out_w + ix) * 3;
-
-                    // For simplicity, just fill with the average color
-                    // In a more complete implementation, we would draw the actual character here
-                    if (ascii_char != ' ')
-                    {
-                        ascii_img[img_index] = avg_color[0];
-                        ascii_img[img_index + 1] = avg_color[1];
-                        ascii_img[img_index + 2] = avg_color[2];
-                    }
-                    else
-                    {
-                        ascii_img[img_index] = 0;
-                        ascii_img[img_index + 1] = 0;
-                        ascii_img[img_index + 2] = 0;
-                    }
-                }
-            }
-        }
-    }
-
-    return ascii_img;
 }
 
 // Generate ASCII art as text

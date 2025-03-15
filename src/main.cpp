@@ -9,7 +9,7 @@ void displayHelp(const char *program_name)
     std::cout << "Usage: " << program_name << " [options]" << std::endl;
     std::cout << "Options:" << std::endl;
     std::cout << "  -i, --input <path>       Input image path" << std::endl;
-    std::cout << "  -o, --output <path>      Output path (image or .txt)" << std::endl;
+    std::cout << "  -o, --output <path>      Output path (.txt)" << std::endl;
     std::cout << "  -c, --chars <string>     ASCII character set (default: \" .:-=+*#%@\")" << std::endl;
     std::cout << "  --color                  Use color in output (ANSI escape codes for terminal)" << std::endl;
     std::cout << "  --invert                 Invert brightness" << std::endl;
