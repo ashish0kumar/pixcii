@@ -1,6 +1,6 @@
 # pixcii
 
-`pixcii` is a fast and customizable **image-to-ASCII** converter written in C++.
+A fast and feature-rich **image-to-ASCII** converter written in C++.
 It supports **grayscale** and **colored ASCII output**, **edge detection**, and
 various **image transformations**.
 
@@ -42,6 +42,9 @@ make
 ```
 
 ## Usage
+
+> [!NOTE]
+> You **may need to zoom in or out** in your terminal (`Ctrl +/-`) to **properly view the ASCII art**, as character spacing and aspect ratio can affect readability.
 
 ### Command-Line Options
 
@@ -113,6 +116,14 @@ make
   ```sh
   ./pixcii -h
   ```
+
+## Roadmap
+
+- [ ] Automatically detect the terminal size and scale the output to fit.
+- [ ] Implement different character sets optimized for different scenarios (one for density, one for clarity, etc)
+- [ ] Allow users to save and load parameter presets via config files.
+- [ ] Optimize performance for larger images
+- [ ] Video support
 
 ## License
 
