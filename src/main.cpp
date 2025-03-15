@@ -6,18 +6,18 @@
 
 void displayHelp(const char *program_name)
 {
-    std::cout << "Usage: " << program_name << " [options]" << std::endl;
-    std::cout << "Options:" << std::endl;
-    std::cout << "  -i, --input <path>       Input image path" << std::endl;
-    std::cout << "  -o, --output <path>      Output path (.txt)" << std::endl;
-    std::cout << "  -c, --chars <string>     ASCII character set (default: \" .:-=+*#%@\")" << std::endl;
-    std::cout << "  --color                  Use color in output (ANSI escape codes for terminal)" << std::endl;
-    std::cout << "  --invert                 Invert brightness" << std::endl;
-    std::cout << "  -b, --brightness <float> Brightness adjustment (default: 1.0)" << std::endl;
-    std::cout << "  -s, --scale <float>      Scale factor (default: 1.0)" << std::endl;
-    std::cout << "  --edges                  Detect edges instead of brightness" << std::endl;
-    std::cout << "  --aspect-ratio <float>   Character aspect ratio (default: 0.5)" << std::endl;
-    std::cout << "  -h, --help               Show this help message" << std::endl;
+    std::cout << "Usage: " << program_name << " [options]\n\n";
+    std::cout << "Options:\n";
+    std::cout << "  -i, --input [path]          Path to input image\n";
+    std::cout << "  -o, --output [path]         Path to save output (.txt)\n";
+    std::cout << "  -m, --chars [string]        ASCII character set (default: \" .:-=+*#%@\")\n";
+    std::cout << "  -c, --color                 Enable colored output (ANSI escape codes)\n";
+    std::cout << "  -n, --invert                Invert brightness\n";
+    std::cout << "  -b, --brightness [float]    Adjust brightness (default: 1.0)\n";
+    std::cout << "  -s, --scale [float]         Scale image (default: 1.0)\n";
+    std::cout << "  -e, --edges                 Detect edges instead of brightness\n";
+    std::cout << "  -a, --aspect-ratio [float]  Set character aspect ratio (default: 0.5)\n";
+    std::cout << "  -h, --help                  Show this help message\n";
 }
 
 int main(int argc, char *argv[])
@@ -25,12 +25,10 @@ int main(int argc, char *argv[])
     try
     {
         AsciiArtParams params;
-
         // Simple command line parsing
         for (int i = 1; i < argc; i++)
         {
             std::string arg = argv[i];
-
             if (arg == "-i" || arg == "--input")
             {
                 if (i + 1 < argc)
@@ -45,18 +43,18 @@ int main(int argc, char *argv[])
                     params.output_path = argv[++i];
                 }
             }
-            else if (arg == "-c" || arg == "--chars")
+            else if (arg == "-m" || arg == "--chars")
             {
                 if (i + 1 < argc)
                 {
                     params.ascii_chars = argv[++i];
                 }
             }
-            else if (arg == "--color")
+            else if (arg == "-c" || arg == "--color")
             {
                 params.color = true;
             }
-            else if (arg == "--invert")
+            else if (arg == "-n" || arg == "--invert")
             {
                 params.invert_color = true;
             }
@@ -74,11 +72,11 @@ int main(int argc, char *argv[])
                     params.scale = std::stof(argv[++i]);
                 }
             }
-            else if (arg == "--edges")
+            else if (arg == "-e" || arg == "--edges")
             {
                 params.detect_edges = true;
             }
-            else if (arg == "--aspect-ratio")
+            else if (arg == "-a" || arg == "--aspect-ratio")
             {
                 if (i + 1 < argc)
                 {
