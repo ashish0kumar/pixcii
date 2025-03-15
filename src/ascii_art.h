@@ -14,8 +14,6 @@ struct AsciiArtParams
     bool invert_color = false;
     float brightness_boost = 1.0f;
     float scale = 1.0f;
-    int block_width = 8;
-    int block_height = 16;
     bool detect_edges = false;
     float aspect_ratio = 2.0f;
 };
@@ -36,7 +34,7 @@ void processImage(const AsciiArtParams &params);
 std::string generateAsciiText(const Image &img, const AsciiArtParams &params);
 
 // Calculate block information
-BlockInfo calculateBlockInfo(const Image &img, int x, int y, int block_width, int block_height, const AsciiArtParams &params);
+BlockInfo calculateBlockInfo(const Image &img, int x, int y, const AsciiArtParams &params);
 
 // Select an ASCII character based on block brightness
 char selectAsciiChar(const BlockInfo &block_info, const AsciiArtParams &params);

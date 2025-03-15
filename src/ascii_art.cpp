@@ -38,15 +38,12 @@ void processImage(const AsciiArtParams &params)
 }
 
 // Calculate block information for ASCII character selection
-BlockInfo calculateBlockInfo(const Image &img, int x, int y, int block_width, int block_height, const AsciiArtParams &params)
+BlockInfo calculateBlockInfo(const Image &img, int x, int y, const AsciiArtParams &params)
 {
     BlockInfo info;
 
     // Initialize sum_color with 3 zeros
     info.sum_color = {0, 0, 0};
-
-    int bw = std::min(block_width, img.width - x);
-    int bh = std::min(block_height, img.height - y);
 
     // Calculate edge magnitudes if edge detection is enabled
     static std::vector<float> edge_magnitudes;
@@ -58,50 +55,44 @@ BlockInfo calculateBlockInfo(const Image &img, int x, int y, int block_width, in
         edges_calculated = true;
     }
 
-    for (int dy = 0; dy < bh; dy++)
+    int ix = x;
+    int iy = y;
+
+    if (ix >= img.width || iy >= img.height)
     {
-        for (int dx = 0; dx < bw; dx++)
-        {
-            int ix = x + dx;
-            int iy = y + dy;
-
-            if (ix >= img.width || iy >= img.height)
-            {
-                continue;
-            }
-
-            int pixel_index = (iy * img.width + ix) * img.channels;
-            if (pixel_index + 2 >= img.width * img.height * img.channels)
-            {
-                continue;
-            }
-
-            uint8_t r = img.data[pixel_index];
-            uint8_t g = img.data[pixel_index + 1];
-            uint8_t b = img.data[pixel_index + 2];
-
-            uint64_t gray = static_cast<uint64_t>(0.3f * r + 0.59f * g + 0.11f * b);
-
-            // If edge detection is enabled, use edge magnitude instead of brightness
-            if (params.detect_edges)
-            {
-                info.sum_mag += edge_magnitudes[iy * img.width + ix];
-            }
-            else
-            {
-                info.sum_brightness += gray;
-            }
-
-            if (params.color)
-            {
-                info.sum_color[0] += r;
-                info.sum_color[1] += g;
-                info.sum_color[2] += b;
-            }
-
-            info.pixel_count += 1;
-        }
+        return info;
     }
+
+    int pixel_index = (iy * img.width + ix) * img.channels;
+    if (pixel_index + 2 >= img.width * img.height * img.channels)
+    {
+        return info;
+    }
+
+    uint8_t r = img.data[pixel_index];
+    uint8_t g = img.data[pixel_index + 1];
+    uint8_t b = img.data[pixel_index + 2];
+
+    uint64_t gray = static_cast<uint64_t>(0.3f * r + 0.59f * g + 0.11f * b);
+
+    // If edge detection is enabled, use edge magnitude instead of brightness
+    if (params.detect_edges)
+    {
+        info.sum_mag += edge_magnitudes[iy * img.width + ix];
+    }
+    else
+    {
+        info.sum_brightness += gray;
+    }
+
+    if (params.color)
+    {
+        info.sum_color[0] += r;
+        info.sum_color[1] += g;
+        info.sum_color[2] += b;
+    }
+
+    info.pixel_count += 1;
 
     return info;
 }
@@ -150,7 +141,7 @@ std::string generateAsciiText(const Image &img, const AsciiArtParams &params)
     {
         for (int x = 0; x < img.width; x++)
         {
-            BlockInfo block_info = calculateBlockInfo(img, x, y, 1, 1, params);
+            BlockInfo block_info = calculateBlockInfo(img, x, y, params);
             char ascii_char = selectAsciiChar(block_info, params);
 
             if (use_color)
@@ -163,9 +154,6 @@ std::string generateAsciiText(const Image &img, const AsciiArtParams &params)
                 // ANSI color escape code for RGB
                 ascii_text += "\033[38;2;" + std::to_string(r) + ";" + std::to_string(g) + ";" + std::to_string(b) + "m";
                 ascii_text += ascii_char;
-
-                // Reset color after each character
-                // ascii_text += "\033[0m";  // Uncomment this for reset after each char
             }
             else
             {

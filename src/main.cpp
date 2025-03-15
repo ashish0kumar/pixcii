@@ -15,10 +15,8 @@ void displayHelp(const char *program_name)
     std::cout << "  --invert                 Invert brightness" << std::endl;
     std::cout << "  -b, --brightness <float> Brightness adjustment (default: 1.0)" << std::endl;
     std::cout << "  -s, --scale <float>      Scale factor (default: 1.0)" << std::endl;
-    std::cout << "  --block-width <int>      Block width (default: 8)" << std::endl;
-    std::cout << "  --block-height <int>     Block height (default: 16)" << std::endl;
     std::cout << "  --edges                  Detect edges instead of brightness" << std::endl;
-    std::cout << "  --aspect-ratio <float>   Character aspect ratio (default: 2.0)" << std::endl;
+    std::cout << "  --aspect-ratio <float>   Character aspect ratio (default: 0.5)" << std::endl;
     std::cout << "  -h, --help               Show this help message" << std::endl;
 }
 
@@ -74,20 +72,6 @@ int main(int argc, char *argv[])
                 if (i + 1 < argc)
                 {
                     params.scale = std::stof(argv[++i]);
-                }
-            }
-            else if (arg == "--block-width")
-            {
-                if (i + 1 < argc)
-                {
-                    params.block_width = std::stoi(argv[++i]);
-                }
-            }
-            else if (arg == "--block-height")
-            {
-                if (i + 1 < argc)
-                {
-                    params.block_height = std::stoi(argv[++i]);
                 }
             }
             else if (arg == "--edges")
