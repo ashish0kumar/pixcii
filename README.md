@@ -125,6 +125,20 @@ make
 - [ ] Optimize performance for larger images
 - [ ] Video support
 
+## Contributions
+
+Contributions are welcome! If you'd like to improve the project, follow these steps:
+
+1. Fork the repository.
+
+2. Create a new branch for your feature or bug fix.
+
+3. Commit your changes with a clear message.
+
+4. Push your branch and create a pull request.
+
+Before submitting, ensure your code follows the project's coding style and is well documented.
+
 ## License
 
-This project is licensed under the MIT License.
+[MIT](LICENSE)
