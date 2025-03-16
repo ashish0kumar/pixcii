@@ -5,7 +5,7 @@ A fast and feature-rich image-to-ASCII converter written in C++
 </p>
 
 <div align="center">
-<img src="./assets/header.png" width="40%" />
+<img src="./assets/chad.png" width="40%" />
 </div>
 
 ## Features
@@ -65,7 +65,7 @@ make
 | `-a, --aspect-ratio <float>` | Adjust character aspect ratio (default: 2.0)                  |
 | `-h, --help`                 | Show help message                                             |
 
-### Examples
+### Example Commands
 
 - **Convert an image to ASCII art and save to a file**
 
@@ -120,6 +120,16 @@ make
   ```sh
   ./pixcii -h
   ```
+
+### Example Outputs
+
+| Normal Output | Colored Output |
+|--------------|---------------|
+| ![Normal](./assets/normal.png) | ![Color](./assets/color.png) |
+
+| Negative Output | Edge Detection Output |
+|----------------|----------------------|
+| ![Negative](./assets/negative.png) | ![Edge](./assets/edge.png) |
 
 ## Roadmap
 
