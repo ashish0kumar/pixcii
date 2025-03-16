@@ -8,15 +8,15 @@ void displayHelp(const char *program_name)
 {
     std::cout << "Usage: " << program_name << " [options]\n\n";
     std::cout << "Options:\n";
-    std::cout << "  -i, --input [path]          Path to input image\n";
-    std::cout << "  -o, --output [path]         Path to save output (.txt)\n";
-    std::cout << "  -m, --chars [string]        ASCII character set (default: \" .:-=+*#%@\")\n";
+    std::cout << "  -i, --input <path>          Path to input image\n";
+    std::cout << "  -o, --output <path>         Path to save output (.txt)\n";
+    std::cout << "  -m, --chars <string>        ASCII character set (default: \" .:-=+*#%@\")\n";
     std::cout << "  -c, --color                 Enable colored output (ANSI escape codes)\n";
     std::cout << "  -n, --invert                Invert brightness\n";
-    std::cout << "  -b, --brightness [float]    Adjust brightness (default: 1.0)\n";
-    std::cout << "  -s, --scale [float]         Scale image (default: 1.0)\n";
+    std::cout << "  -b, --brightness <float>    Adjust brightness (default: 1.0)\n";
+    std::cout << "  -s, --scale <float>         Scale image (default: 1.0)\n";
     std::cout << "  -e, --edges                 Detect edges instead of brightness\n";
-    std::cout << "  -a, --aspect-ratio [float]  Set character aspect ratio (default: 0.5)\n";
+    std::cout << "  -a, --aspect-ratio <float>  Set character aspect ratio (default: 0.5)\n";
     std::cout << "  -h, --help                  Show this help message\n";
 }
 
