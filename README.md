@@ -5,7 +5,7 @@ A fast and feature-rich image-to-ASCII converter written in C++
 </p>
 
 <div align="center">
-<img src="./assets/chad.png" width="40%" />
+<img src="./assets/doom.png" width="70%" />
 </div>
 
 ## Features
@@ -125,11 +125,11 @@ make
 
 | Normal Output | Colored Output |
 |--------------|---------------|
-| ![Normal](./assets/normal.png) | ![Color](./assets/color.png) |
+| ![Normal](./assets/norm.png) | ![Color](./assets/col.png) |
 
 | Negative Output | Edge Detection Output |
 |----------------|----------------------|
-| ![Negative](./assets/negative.png) | ![Edge](./assets/edge.png) |
+| ![Negative](./assets/neg.png) | ![Edge](./assets/ed.png) |
 
 ## Roadmap
 
