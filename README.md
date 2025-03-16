@@ -1,8 +1,12 @@
-# pixcii
+<h1 align="center">pixcii</h1>
 
-A fast and feature-rich **image-to-ASCII** converter written in C++.
-It supports **grayscale** and **colored ASCII output**, **edge detection**, and
-various **image transformations**.
+<p align="center">
+A fast and feature-rich image-to-ASCII converter written in C++
+</p>
+
+<div align="center">
+<img src="./assets/gigachad.png" width="50%" />
+</div>
 
 ## Features
 
@@ -130,11 +134,8 @@ make
 Contributions are welcome! If you'd like to improve the project, follow these steps:
 
 1. Fork the repository.
-
 2. Create a new branch for your feature or bug fix.
-
 3. Commit your changes with a clear message.
-
 4. Push your branch and create a pull request.
 
 Before submitting, ensure your code follows the project's coding style and is well documented.
