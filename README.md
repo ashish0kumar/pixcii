@@ -5,10 +5,8 @@ A fast and feature-rich image-to-ASCII converter written in C++
 </p>
 
 <div align="center">
-<img src="./assets/doom_color.png" width="80%" />
+<img src="./assets/doom_color.png" width="75%" />
 </div>
-
-<hr>
 
 ## Features
 
