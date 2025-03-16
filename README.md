@@ -45,6 +45,19 @@ make
 ./pixcii --help
 ```
 
+**Move to a Directory in `$PATH`** <br>
+This allows you to run the program from anywhere
+
+```sh
+mv pixcii ~/.local/bin/
+
+# If ~/.local/bin/ is not in `$PATH:
+export PATH="$HOME/.local/bin:$PATH"
+
+# Usage
+pixcii --help
+```
+
 ## Usage
 
 > [!NOTE]
