@@ -1,12 +1,8 @@
-<h1 align="center">pixcii</h1>
+# pixcii
 
-<p align="center">
-A fast and feature-rich image-to-ASCII converter written in C++
-</p>
+A fast and feature-rich **image-to-ASCII** converter written in **C++**
 
-<div align="center">
 <img src="./assets/doom.png" width="70%" />
-</div>
 
 ## Features
 
