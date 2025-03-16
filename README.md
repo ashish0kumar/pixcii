@@ -5,7 +5,7 @@ A fast and feature-rich image-to-ASCII converter written in C++
 </p>
 
 <div align="center">
-<img src="./assets/gigachad.png" width="50%" />
+<img src="./assets/chad.png" width="50%" />
 </div>
 
 ## Features
