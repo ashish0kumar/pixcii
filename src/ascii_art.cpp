@@ -11,8 +11,13 @@ void processImage(const AsciiArtParams &params)
     // Load the image
     Image img = loadImage(params.input_path);
 
-    // Resize the image if needed, accounting for aspect ratio
-    if (params.scale != 1.0f)
+    // If auto_fit is enabled, resize to fit terminal
+    if (params.auto_fit)
+    {
+        img = resizeImageToTerminal(img, params.aspect_ratio, true);
+    }
+    // Otherwise, use the existing scale parameter
+    else if (params.scale != 1.0f)
     {
         img = resizeImage(img, params.scale, params.aspect_ratio);
     }
@@ -136,6 +141,8 @@ std::string generateAsciiText(const Image &img, const AsciiArtParams &params)
 {
     std::string ascii_text;
     bool use_color = params.color && img.channels >= 3;
+
+    ascii_text += "\n";
 
     for (int y = 0; y < img.height; y++)
     {

@@ -16,7 +16,8 @@ void displayHelp(const char *program_name)
     std::cout << "  -b, --brightness <float>    Adjust brightness (default: 1.0)\n";
     std::cout << "  -s, --scale <float>         Scale image (default: 1.0)\n";
     std::cout << "  -e, --edges                 Detect edges instead of brightness\n";
-    std::cout << "  -a, --aspect-ratio <float>  Set character aspect ratio (default: 0.5)\n";
+    std::cout << "  -a, --aspect-ratio <float>  Set character aspect ratio (default: 2.0)\n";
+    std::cout << "  -t, --terminal-fit          Auto-fit image to terminal size\n";
     std::cout << "  -h, --help                  Show this help message\n";
 }
 
@@ -82,6 +83,10 @@ int main(int argc, char *argv[])
                 {
                     params.aspect_ratio = std::stof(argv[++i]);
                 }
+            }
+            else if (arg == "-t" || arg == "--terminal-fit")
+            {
+                params.auto_fit = true;
             }
             else if (arg == "-h" || arg == "--help")
             {

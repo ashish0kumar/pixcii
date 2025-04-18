@@ -16,6 +16,7 @@ struct AsciiArtParams
     float scale = 1.0f;
     bool detect_edges = false;
     float aspect_ratio = 2.0f;
+    bool auto_fit = false;
 };
 
 // Information about a block of pixels

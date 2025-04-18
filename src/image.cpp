@@ -6,6 +6,15 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cmath>
+#include <iostream>
+
+// For terminal size detection
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <sys/ioctl.h>
+#include <unistd.h>
+#endif
 
 // Load an image using stb_image
 Image loadImage(const std::string &path)
@@ -73,6 +82,62 @@ Image resizeImage(const Image &img, float scale, float aspect_ratio)
     }
 
     return resized;
+}
+
+// Get current terminal size
+TerminalSize getTerminalSize()
+{
+    TerminalSize size = {80, 24}; // Default fallback size
+
+#ifdef _WIN32
+    // Windows implementation
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi))
+    {
+        size.width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+        size.height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    }
+#else
+    // Unix implementation
+    struct winsize w;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != -1)
+    {
+        size.width = w.ws_col - 5;
+        size.height = w.ws_row - 5;
+    }
+#endif
+
+    return size;
+}
+
+// Resize image to fit terminal dimensions
+Image resizeImageToTerminal(const Image &img, float aspect_ratio, bool auto_fit)
+{
+    if (!auto_fit)
+    {
+        // If auto_fit is false, just return the original image
+        return img;
+    }
+
+    // Get terminal size
+    TerminalSize term = getTerminalSize();
+
+    // Account for one line potentially being used for status/prompt
+    int terminal_height = term.height - 1;
+
+    // Calculate scale factor
+    float scale_width = static_cast<float>(img.width) / term.width;
+    float scale_height = static_cast<float>(img.height) / (terminal_height * aspect_ratio);
+
+    // Use the larger scale factor to ensure the image fits
+    float scale = std::max(scale_width, scale_height);
+
+    // Ensure scale is positive and not too small
+    if (scale <= 0.01f)
+        scale = 0.01f;
+
+    // Use the existing resize with the calculated scale
+    return resizeImage(img, scale, aspect_ratio);
 }
 
 // Convert RGB image to grayscale
