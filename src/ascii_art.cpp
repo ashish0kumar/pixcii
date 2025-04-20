@@ -1,181 +1,270 @@
 #include "ascii_art.h"
 #include "edge_detection.h"
 #include "output.h"
+#include "image.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <vector>
 
-// Main function to process an image
+// --- Constants ---
+namespace constants
+{
+    // Standard luminance weights for RGB to Grayscale conversion (Rec. 601 standard)
+    // These weights are used when converting a color image to a single grayscale value per pixel.
+    const float GRAYSCALE_WEIGHT_R = 0.299f;
+    const float GRAYSCALE_WEIGHT_G = 0.587f;
+    const float GRAYSCALE_WEIGHT_B = 0.114f;
+}
+// --- End Constants ---
+
+// Main function to process an image and generate ASCII art
+// Handles loading, resizing, edge detection, text generation, and output
 void processImage(const AsciiArtParams &params)
 {
-    // Load the image
+    // Load the image from the specified input path
     Image img = loadImage(params.input_path);
 
-    // If auto_fit is enabled, resize to fit terminal
+    // --- Image Resizing and Aspect Ratio Adjustment ---
+    // Check if auto-fit to terminal is enabled
     if (params.auto_fit)
     {
+        // Resize image to fit terminal dimensions while respecting aspect ratio
         img = resizeImageToTerminal(img, params.aspect_ratio, true);
     }
-    // Otherwise, use the existing scale parameter
+    // Otherwise, apply scaling based on the scale parameter
     else if (params.scale != 1.0f)
     {
+        // Resize image by the specified scale factor and adjust for aspect ratio
         img = resizeImage(img, params.scale, params.aspect_ratio);
     }
     else
     {
-        // Even if not explicitly resizing, we may need to adjust for aspect ratio
+        // Even if no explicit scaling, resize to apply aspect ratio correction if needed
         img = resizeImage(img, 1.0f, params.aspect_ratio);
     }
 
-    // Generate ASCII text
-    std::string ascii_text = generateAsciiText(img, params);
+    // --- Edge Detection ---
+    // Perform edge detection ONCE on the resized image if requested by parameters
+    std::vector<float> edge_magnitudes;
+    // Use a pointer to the edge magnitudes vector. It will be nullptr if edges are not detected.
+    const std::vector<float> *edge_magnitudes_ptr = nullptr;
 
-    // Print to console if no output path
-    if (params.output_path.empty())
+    if (params.detect_edges)
+    {
+        // Call the edge detection function
+        edge_magnitudes = detectEdges(img);
+        // Point the pointer to the calculated magnitudes vector
+        edge_magnitudes_ptr = &edge_magnitudes;
+    }
+    // --- End Edge Detection ---
+
+    // Generate the ASCII text representation of the image
+    // Pass the image data, parameters, and the optional edge magnitudes pointer
+    std::string ascii_text = generateAsciiText(img, params, edge_magnitudes_ptr);
+
+    // --- Output Handling ---
+    // If an output path is specified, save the ASCII text to a file
+    if (!params.output_path.empty())
+    {
+        saveOutputText(ascii_text, params.output_path);
+    }
+    // If no output path is specified, print the ASCII text to the console
+    else
     {
         std::cout << ascii_text << std::endl;
     }
-    else
-    {
-        // Save to file
-        saveOutputText(ascii_text, params.output_path);
-    }
+
+    // Note: Image data (img.data) is automatically freed when img goes out of scope
+    // Edge magnitudes vector is also freed when edge_magnitudes goes out of scope
 }
 
-// Calculate block information for ASCII character selection
-BlockInfo calculateBlockInfo(const Image &img, int x, int y, const AsciiArtParams &params)
+// Calculate relevant information (brightness, color, edge_magnitude) for a single pixel
+// This function processes one pixel at the given (x, y) coordinates
+PixelInfo getPixelInfo(const Image &img, int x, int y, const AsciiArtParams &params, const std::vector<float> *edge_magnitudes)
 {
-    BlockInfo info;
+    PixelInfo info; // Create a struct to hold pixel information
 
-    // Initialize sum_color with 3 zeros
-    info.sum_color = {0, 0, 0};
+    // Initialize color vector with zeros
+    info.color = {0, 0, 0};
 
-    // Calculate edge magnitudes if edge detection is enabled
-    static std::vector<float> edge_magnitudes;
-    static bool edges_calculated = false;
-
-    if (params.detect_edges && !edges_calculated)
+    // --- Bounds Check ---
+    // Basic bounds check to ensure coordinates are within image dimensions
+    // Although calling code should ideally provide valid coordinates, this adds safety
+    if (x < 0 || x >= img.width || y < 0 || y >= img.height)
     {
-        edge_magnitudes = detectEdges(img);
-        edges_calculated = true;
-    }
-
-    int ix = x;
-    int iy = y;
-
-    if (ix >= img.width || iy >= img.height)
-    {
+        // If out of bounds, return default (zero-initialized) info
         return info;
     }
 
-    int pixel_index = (iy * img.width + ix) * img.channels;
-    if (pixel_index + 2 >= img.width * img.height * img.channels)
+    // Calculate the starting index of the pixel's data in the image vector
+    int pixel_index = (y * img.width + x) * img.channels;
+
+    // --- Data Bounds Check ---
+    // More robust check to ensure accessing pixel_index and subsequent channels
+    // does not go beyond the allocated data vector size
+    if (pixel_index + (img.channels > 0 ? img.channels - 1 : 0) >= img.data.size())
     {
+        // If index is out of bounds for the data vector, return default info
         return info;
     }
+    // --- End Bounds Checks ---
 
-    uint8_t r = img.data[pixel_index];
-    uint8_t g = img.data[pixel_index + 1];
-    uint8_t b = img.data[pixel_index + 2];
+    // Get the color components based on the number of channels
+    // Safely access channels if they exist
+    uint8_t r = (img.channels >= 1) ? img.data[pixel_index] : 0;
+    uint8_t g = (img.channels >= 2) ? img.data[pixel_index + 1] : 0;
+    uint8_t b = (img.channels >= 3) ? img.data[pixel_index + 2] : 0;
 
-    uint64_t gray = static_cast<uint64_t>(0.3f * r + 0.59f * g + 0.11f * b);
+    // Calculate grayscale brightness using standard luminance weights
+    // These weights are defined as constants in image.cpp (conceptually)
+    uint64_t gray = static_cast<uint64_t>(
+        constants::GRAYSCALE_WEIGHT_R * r + 
+        constants::GRAYSCALE_WEIGHT_G * g + 
+        constants::GRAYSCALE_WEIGHT_B * b
+    );
 
-    // If edge detection is enabled, use edge magnitude instead of brightness
-    if (params.detect_edges)
+    // --- Edge Detection Data Access ---
+    // If edge detection was enabled and the edge magnitudes vector was provided
+    if (params.detect_edges && edge_magnitudes != nullptr)
     {
-        info.sum_mag += edge_magnitudes[iy * img.width + ix];
+        // Check if the current pixel's index is within the bounds of the edge magnitudes vector
+        size_t edge_index = y * img.width + x;
+        if (edge_index < edge_magnitudes->size())
+        {
+            // Assign the pre-calculated edge magnitude for this pixel
+            info.edge_magnitude = (*edge_magnitudes)[edge_index];
+        }
+        else
+        {
+            // Should not happen if edge_magnitudes vector size matches image size, but safer check
+            info.edge_magnitude = 0.0f; // Default if index is somehow out of bounds
+        }
     }
     else
     {
-        info.sum_brightness += gray;
+        // If edge detection is not enabled, use the calculated brightness value
+        info.brightness = gray;
     }
+    // --- End Edge Detection Data Access ---
 
-    if (params.color)
+    // If color output is enabled and the image has enough channels (at least 3 for RGB)
+    if (params.color && img.channels >= 3)
     {
-        info.sum_color[0] += r;
-        info.sum_color[1] += g;
-        info.sum_color[2] += b;
+        // Store the pixel's color values directly
+        info.color[0] = r;
+        info.color[1] = g;
+        info.color[2] = b;
     }
 
-    info.pixel_count += 1;
-
+    // The struct now holds info for this specific pixel
     return info;
 }
 
-// Select an ASCII character based on block brightness
-char selectAsciiChar(const BlockInfo &block_info, const AsciiArtParams &params)
+// Select an ASCII character from the character set based on the pixel information (brightness or edge magnitude)
+// The character is chosen based on mapping the pixel value (0-255) to the character set size
+char selectAsciiChar(const PixelInfo &pixel_info, const AsciiArtParams &params)
 {
-    if (block_info.pixel_count == 0)
-    {
-        return ' ';
-    }
+    uint64_t value; // Value used for character selection (brightness or edge magnitude)
 
-    uint64_t value;
+    // Determine which value to use based on parameters
     if (params.detect_edges)
     {
-        // Use edge magnitude
-        float avg_mag = block_info.sum_mag / block_info.pixel_count;
-        value = static_cast<uint64_t>(std::min(avg_mag * params.brightness_boost, 255.0f));
+        // Use edge magnitude if edge detection is enabled
+        float mag = pixel_info.edge_magnitude;
+        // Apply brightness boost and clamp between 0 and 255
+        value = static_cast<uint64_t>(std::min(std::max(mag * params.brightness_boost, 0.0f), 255.0f));
     }
     else
     {
-        // Use brightness
-        uint64_t avg_brightness = block_info.sum_brightness / block_info.pixel_count;
-        float boosted_brightness = static_cast<float>(avg_brightness) * params.brightness_boost;
+        // Use brightness if edge detection is not enabled
+        uint64_t brightness = pixel_info.brightness;
+        // Apply brightness boost and clamp between 0 and 255
+        float boosted_brightness = static_cast<float>(brightness) * params.brightness_boost;
         value = std::min(static_cast<uint64_t>(std::max(boosted_brightness, 0.0f)), static_cast<uint64_t>(255));
     }
 
-    if (value == 0)
+    // Handle the case where the value is 0. Map to the first character unless inverted.
+    // The first character is typically space for brightness.
+    if (value == 0 && !params.invert_color)
     {
-        return ' ';
+        return params.ascii_chars.front(); // Return the first character (lowest brightness)
+    }
+    // Handle the case where the value is 0 and inverted. Map to the last character.
+    else if (value == 0 && params.invert_color)
+    {
+        return params.ascii_chars.back(); // Return the last character (highest brightness in inverted scale)
     }
 
+    // Map the value (0-255) to an index in the ASCII character set
+    // The index is proportional to the value relative to the 0-256 range
     size_t char_index = (value * params.ascii_chars.size()) / 256;
+
+    // Ensure the calculated index is within the bounds of the character set vector
     char_index = std::min(char_index, params.ascii_chars.size() - 1);
 
+    // Return the character at the selected index
+    // If invert_color is true, select from the end of the character set
     return params.ascii_chars[params.invert_color ? params.ascii_chars.size() - 1 - char_index : char_index];
 }
 
-// Generate ASCII art as text
-std::string generateAsciiText(const Image &img, const AsciiArtParams &params)
+// Generate ASCII art as a text string
+// Iterates through each pixel of the image, calculates its info, selects a character,
+// and formats the output string, including ANSI color codes if enabled.
+std::string generateAsciiText(const Image &img, const AsciiArtParams &params, const std::vector<float> *edge_magnitudes)
 {
-    std::string ascii_text;
+    std::string ascii_text; // String to build the ASCII output
+    // Determine if color output should be used (requires color flag and enough image channels)
     bool use_color = params.color && img.channels >= 3;
 
+    // Add an initial newline for consistent output formatting
     ascii_text += "\n";
 
+    // Iterate through each row (height) of the image
     for (int y = 0; y < img.height; y++)
     {
+        // Iterate through each column (width) of the image
         for (int x = 0; x < img.width; x++)
         {
-            BlockInfo block_info = calculateBlockInfo(img, x, y, params);
-            char ascii_char = selectAsciiChar(block_info, params);
+            // Get the information for the current pixel
+            // Pass the edge magnitudes pointer
+            PixelInfo pixel_info = getPixelInfo(img, x, y, params, edge_magnitudes);
 
+            // Select the ASCII character corresponding to this pixel's info
+            char ascii_char = selectAsciiChar(pixel_info, params);
+
+            // --- Color Formatting ---
             if (use_color)
             {
-                // Add ANSI color escape codes
-                uint8_t r = block_info.sum_color[0] / block_info.pixel_count;
-                uint8_t g = block_info.sum_color[1] / block_info.pixel_count;
-                uint8_t b = block_info.sum_color[2] / block_info.pixel_count;
+                // Get the color components from the pixel info
+                uint8_t r = pixel_info.color[0];
+                uint8_t g = pixel_info.color[1];
+                uint8_t b = pixel_info.color[2];
 
-                // ANSI color escape code for RGB
+                // Append ANSI color escape code for 24-bit color (RGB)
+                // Format: \033[38;2;R;G;Bm
                 ascii_text += "\033[38;2;" + std::to_string(r) + ";" + std::to_string(g) + ";" + std::to_string(b) + "m";
+                // Append the selected ASCII character
                 ascii_text += ascii_char;
             }
             else
             {
+                // If color is not enabled, just append the ASCII character
                 ascii_text += ascii_char;
             }
         }
 
-        // Reset color at the end of each line
+        // --- Color Reset and Newline ---
+        // Reset color at the end of each line to prevent bleeding into the next line or prompt
         if (use_color)
         {
-            ascii_text += "\033[0m";
+            ascii_text += "\033[0m"; // ANSI reset code
         }
 
+        // Add a newline character at the end of each row to move to the next line of ASCII art
         ascii_text += '\n';
     }
 
+    // Return the complete generated ASCII text string
     return ascii_text;
 }

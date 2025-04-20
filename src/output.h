@@ -3,5 +3,10 @@
 #include <string>
 #include <vector>
 
-// Save output as text
+// --- Function Declarations ---
+
+// Saves a string of text to a specified file path.
+// ascii_text: The string content to save.
+// output_path: The path to the output file.
+// Throws: std::runtime_error if the file cannot be opened for writing.
 void saveOutputText(const std::string &ascii_text, const std::string &output_path);
