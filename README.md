@@ -16,7 +16,8 @@ A fast and feature-rich image-to-ASCII converter written in C++
 - Adjustable **brightness**, **scaling**, and **aspect ratio** correction
 - **Edge detection** using the **Sobel filter** for enhanced details
 - Option to **invert brightness** for different visual effects
-- **Fast** processing with **efficient** image handling
+- **Efficient** image handling for its complexity level
+- **Utilizes** `stb_image` libraries for robust **image loading** and high-quality **interpolation**
 
 ## Installation
 
@@ -26,7 +27,7 @@ Ensure you have the following installed:
 
 - **C++11** or later
 - **CMake** (>= 3.10)
-- `stb_image.h` and `stb_image_write.h` (already included)
+- `stb_image.h`, `stb_image_write.h`, and `stb_image_resize2.h` (already included)
 
 ### Build Instructions
 
