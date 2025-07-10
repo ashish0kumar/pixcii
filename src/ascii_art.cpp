@@ -338,15 +338,11 @@ bool processVideo(const std::string &videoFile,
     int calculatedDelay = (fps > 0) ? static_cast<int>(1000.0 / fps) : 100;
     int actualDelay = (frameDelay == 100) ? calculatedDelay : frameDelay;
 
-    // Terminal initialization with input suppression
-    std::cout << "\033[22;0t" << std::flush;                    // Save title
-    std::cout << "\033c" << std::flush;                         // Full reset
-    std::this_thread::sleep_for(std::chrono::milliseconds(10)); // Minimal delay
-    std::cout << "\033[5t" << std::flush;                       // Raise window
-    std::cout << "\033[?1049h" << std::flush;                   // Enter alternate screen
-    std::cout << "\033[2J\033[1;1H\033[?25l" << std::flush;     // Clean setup
-    std::cout << "\033[?1000h" << std::flush;                   // Capture mouse events
-    std::cout << "\033[?1h\033[=" << std::flush;                // Application cursor keys
+    // Terminal initialization
+    std::cout << "\033c" << std::flush;                     // Full reset
+    std::cout << "\033[?1049h" << std::flush;               // Enter alternate screen
+    std::cout << "\033[2J\033[1;1H\033[?25l" << std::flush; // Clear screen, position cursor, hide cursor
+    std::cout << "\033[?1000h" << std::flush;               // Capture mouse event
 
     int frameCount = 0;
     cv::Mat frame;
@@ -443,11 +439,10 @@ bool processVideo(const std::string &videoFile,
         lastFrameTime = std::chrono::steady_clock::now();
     }
 
-    // Restore input and exit
-    std::cout << "\033[?1l\033[>" << std::flush; // Normal cursor keys
-    std::cout << "\033[?1000l" << std::flush;    // Disable mouse capture
-    std::cout << "\033[?25h" << std::flush;      // Show cursor
-    std::cout << "\033[?1049l" << std::flush;    // Exit alternate screen
+    // Restore and exit
+    std::cout << "\033[?1000l" << std::flush; // Disable mouse capture
+    std::cout << "\033[?25h" << std::flush;   // Show cursor
+    std::cout << "\033[?1049l" << std::flush; // Exit alternate screen
 
     cap.release();
     return true;
