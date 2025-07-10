@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <opencv2/opencv.hpp>
 
 // Structure to hold parameters for ASCII art generation
 struct AsciiArtParams
@@ -54,3 +55,20 @@ PixelInfo getPixelInfo(const Image &img, int x, int y, const AsciiArtParams &par
 // params: Configuration parameters (chars, invert_color)
 // Returns: The selected ASCII character
 char selectAsciiChar(const PixelInfo &pixel_info, const AsciiArtParams &params);
+
+// Process video/GIF frame by frame using existing ASCII art pipeline
+// videoFile: Path to video/GIF
+// params: ASCII art parameters (same as used for static images)
+// frameDelay: Delay between frames in milliseconds for animation effect
+// Returns: true if processing successful, false otherwise
+bool processVideo(const std::string &videoFile, const AsciiArtParams &params, int frameDelay = 100);
+
+// Check if file is a supported video/GIF format
+// filename: Input file path to check
+// Returns: true if file extension matches supported video/GIF formats, false otherwise
+bool isVideoFile(const std::string &filename);
+
+// Convert OpenCV Mat to your Image structure for compatibility with existing pipeline
+// mat: OpenCV Mat object containing frame data
+// Returns: Image structure compatible with your existing ASCII art functions
+Image matToImage(const cv::Mat &mat);

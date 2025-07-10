@@ -11,7 +11,7 @@ void displayHelp(const char *program_name)
 {
     std::cout << "Usage: " << program_name << " [options]\n\n";
     std::cout << "Options:\n";
-    std::cout << "  -i, --input <path>          Path to input image (required)\n";
+    std::cout << "  -i, --input <path>          Path to input image/video/GIF (required)\n";
     std::cout << "  -o, --output <path>         Path to save output (.txt) (optional)\n";
     std::cout << "  -t, --terminal-fit          Auto-fit image to terminal size\n";
     std::cout << "  -c, --color                 Enable colored output (ANSI escape codes)\n";
@@ -21,19 +21,26 @@ void displayHelp(const char *program_name)
     std::cout << "  -n, --invert                Invert brightness mapping\n";
     std::cout << "  -e, --edges                 Detect edges instead of brightness for character selection\n";
     std::cout << "  -m, --chars <string>        ASCII character set (default: \" .:-=+*#%@\")\n";
+    std::cout << "  -d, --delay <ms>            Frame delay in milliseconds for videos (default: auto)\n";
     std::cout << "  -h, --help                  Show this help message\n";
+    std::cout << "\n";
+    std::cout << "Examples:\n";
+    std::cout << "  " << program_name << " -i image.jpg -t -c\n";
+    std::cout << "  " << program_name << " -i video.mp4 -c\n";
+    std::cout << "  " << program_name << " -i animation.gif -d 200\n";
 }
 
 // Main function - entry point of the program
-// Handles command-line argument parsing and calls the main processing function
+// Handles command-line argument parsing and calls the appropriate processing function
 int main(int argc, char *argv[])
 {
     try
     {
         AsciiArtParams params; // Create a struct to hold parsed parameters
+        int frameDelay = 100;
 
-        // --- Simple Command Line Parsing ---
-        // This is a basic manual implementation with checks for missing/unknown arguments.
+        // --- Command Line Parsing ---
+        // Enhanced version of your existing parsing logic with video support
         for (int i = 1; i < argc; i++) // Start from 1 to skip the program name (argv[0])
         {
             std::string arg = argv[i]; // Get the current argument as a string
@@ -164,6 +171,41 @@ int main(int argc, char *argv[])
                     return 1;
                 }
             }
+            else if (arg == "-d" || arg == "--delay")
+            {
+                if (i + 1 < argc)
+                {
+                    try
+                    {
+                        frameDelay = std::stoi(argv[++i]); // Convert next arg to int and assign
+                        if (frameDelay < 0)
+                        {
+                            std::cerr << "Error: Frame delay must be non-negative." << std::endl;
+                            displayHelp(argv[0]);
+                            return 1;
+                        }
+                    }
+                    catch (const std::invalid_argument &ia)
+                    {
+                        std::cerr << "Error: Invalid argument for option '" << arg << "'. Expected an integer." << std::endl;
+                        displayHelp(argv[0]);
+                        return 1;
+                    }
+                    catch (const std::out_of_range &oor)
+                    {
+                        std::cerr << "Error: Argument for option '" << arg << "' out of integer range." << std::endl;
+                        displayHelp(argv[0]);
+                        return 1;
+                    }
+                }
+                else
+                {
+                    std::cerr << "Error: Option '" << arg << "' requires an argument (delay in milliseconds)." << std::endl;
+                    displayHelp(argv[0]);
+                    return 1;
+                }
+            }
+            // Existing boolean flags (unchanged)
             else if (arg == "-c" || arg == "--color")
             {
                 params.color = true; // Set the color flag
@@ -193,13 +235,13 @@ int main(int argc, char *argv[])
                 return 1;
             }
         }
-        // --- End Simple Command Line Parsing ---
+        // --- End Command Line Parsing ---
 
         // --- Parameter Validation ---
         // Check if the required input path was provided
         if (params.input_path.empty())
         {
-            std::cerr << "Error: Input image path is required (--input or -i option)." << std::endl;
+            std::cerr << "Error: Input file path is required (--input or -i option)." << std::endl;
             std::cerr << "Use -h or --help for usage information." << std::endl;
             return 1;
         }
@@ -222,8 +264,23 @@ int main(int argc, char *argv[])
         }
         // --- End Parameter Validation ---
 
-        // Process the image using the parsed parameters
-        processImage(params);
+        // --- File Type Detection and Processing ---
+        // Determine if input is video/GIF or static image and process accordingly
+        if (isVideoFile(params.input_path))
+        {
+            // Process video/GIF
+            if (!processVideo(params.input_path, params, frameDelay))
+            {
+                std::cerr << "Error: Failed to process video file." << std::endl;
+                return 1;
+            }
+        }
+        else
+        {
+            // Process static image using existing function
+            processImage(params);
+        }
+        // --- End File Type Detection and Processing ---
     }
     catch (const std::exception &e)
     {

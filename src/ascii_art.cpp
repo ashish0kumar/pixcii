@@ -6,6 +6,9 @@
 #include <cmath>
 #include <iostream>
 #include <vector>
+#include <opencv2/opencv.hpp>
+#include <chrono>
+#include <thread>
 
 // --- Constants ---
 namespace constants
@@ -72,7 +75,8 @@ void processImage(const AsciiArtParams &params)
     // If no output path is specified, print the ASCII text to the console
     else
     {
-        std::cout << ascii_text << std::endl;
+        std::cout << std::endl
+                  << ascii_text << std::endl;
     }
 
     // Note: Image data (img.data) is automatically freed when img goes out of scope
@@ -103,7 +107,7 @@ PixelInfo getPixelInfo(const Image &img, int x, int y, const AsciiArtParams &par
     // --- Data Bounds Check ---
     // More robust check to ensure accessing pixel_index and subsequent channels
     // does not go beyond the allocated data vector size
-    if (pixel_index + (img.channels > 0 ? img.channels - 1 : 0) >= img.data.size())
+    if (static_cast<size_t>(pixel_index + (img.channels > 0 ? img.channels - 1 : 0)) >= img.data.size())
     {
         // If index is out of bounds for the data vector, return default info
         return info;
@@ -119,10 +123,9 @@ PixelInfo getPixelInfo(const Image &img, int x, int y, const AsciiArtParams &par
     // Calculate grayscale brightness using standard luminance weights
     // These weights are defined as constants in image.cpp (conceptually)
     uint64_t gray = static_cast<uint64_t>(
-        constants::GRAYSCALE_WEIGHT_R * r + 
-        constants::GRAYSCALE_WEIGHT_G * g + 
-        constants::GRAYSCALE_WEIGHT_B * b
-    );
+        constants::GRAYSCALE_WEIGHT_R * r +
+        constants::GRAYSCALE_WEIGHT_G * g +
+        constants::GRAYSCALE_WEIGHT_B * b);
 
     // --- Edge Detection Data Access ---
     // If edge detection was enabled and the edge magnitudes vector was provided
@@ -217,9 +220,6 @@ std::string generateAsciiText(const Image &img, const AsciiArtParams &params, co
     // Determine if color output should be used (requires color flag and enough image channels)
     bool use_color = params.color && img.channels >= 3;
 
-    // Add an initial newline for consistent output formatting
-    ascii_text += "\n";
-
     // Iterate through each row (height) of the image
     for (int y = 0; y < img.height; y++)
     {
@@ -267,4 +267,188 @@ std::string generateAsciiText(const Image &img, const AsciiArtParams &params, co
 
     // Return the complete generated ASCII text string
     return ascii_text;
+}
+
+// --- Video Processing Implementation ---
+
+// Convert OpenCV Mat to your Image structure
+Image matToImage(const cv::Mat &mat)
+{
+    Image img;
+
+    // Set basic image properties
+    img.width = mat.cols;
+    img.height = mat.rows;
+    img.channels = mat.channels();
+
+    // Calculate total data size
+    size_t data_size = img.width * img.height * img.channels;
+    img.data.resize(data_size);
+
+    // Copy pixel data from OpenCV Mat to your Image structure
+    // OpenCV uses BGR format, so we need to convert to RGB
+    if (img.channels == 3)
+    {
+        cv::Mat rgb_mat;
+        cv::cvtColor(mat, rgb_mat, cv::COLOR_BGR2RGB);
+        memcpy(img.data.data(), rgb_mat.data, data_size);
+    }
+    else
+    {
+        // For grayscale or other formats, copy directly
+        memcpy(img.data.data(), mat.data, data_size);
+    }
+
+    return img;
+}
+
+// Check if file is a supported video/GIF format
+// Supports common video formats and animated GIFs
+bool isVideoFile(const std::string &filename)
+{
+    // Convert filename to lowercase for case-insensitive comparison
+    std::string lower = filename;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+    // Check for supported video and GIF extensions
+    return (lower.find(".mp4") != std::string::npos ||
+            lower.find(".avi") != std::string::npos ||
+            lower.find(".mov") != std::string::npos ||
+            lower.find(".mkv") != std::string::npos ||
+            lower.find(".webm") != std::string::npos ||
+            lower.find(".gif") != std::string::npos ||
+            lower.find(".m4v") != std::string::npos ||
+            lower.find(".wmv") != std::string::npos ||
+            lower.find(".flv") != std::string::npos);
+}
+
+// Process video/GIF file with smooth playback and proper frame buffer management
+bool processVideo(const std::string &videoFile,
+                  const AsciiArtParams &params,
+                  int frameDelay)
+{
+    cv::VideoCapture cap(videoFile);
+    if (!cap.isOpened())
+    {
+        std::cerr << "Failed to open video/GIF file: " << videoFile << std::endl;
+        return false;
+    }
+
+    double fps = cap.get(cv::CAP_PROP_FPS);
+    int calculatedDelay = (fps > 0) ? static_cast<int>(1000.0 / fps) : 100;
+    int actualDelay = (frameDelay == 100) ? calculatedDelay : frameDelay;
+
+    // Terminal initialization with input suppression
+    std::cout << "\033[22;0t" << std::flush;                    // Save title
+    std::cout << "\033c" << std::flush;                         // Full reset
+    std::this_thread::sleep_for(std::chrono::milliseconds(10)); // Minimal delay
+    std::cout << "\033[5t" << std::flush;                       // Raise window
+    std::cout << "\033[?1049h" << std::flush;                   // Enter alternate screen
+    std::cout << "\033[2J\033[1;1H\033[?25l" << std::flush;     // Clean setup
+    std::cout << "\033[?1000h" << std::flush;                   // Capture mouse events
+    std::cout << "\033[?1h\033[=" << std::flush;                // Application cursor keys
+
+    int frameCount = 0;
+    cv::Mat frame;
+    auto lastFrameTime = std::chrono::steady_clock::now();
+    int prevHeight = 0;
+    int prevWidth = 0;
+
+    while (true)
+    {
+        cap >> frame;
+        if (frame.empty())
+        {
+            break;
+        }
+
+        // Convert and process frame
+        Image img = matToImage(frame);
+
+        // Apply existing processing pipeline
+        if (params.auto_fit)
+        {
+            img = resizeImageToTerminal(img, params.aspect_ratio, true);
+        }
+        else if (params.scale != 1.0f)
+        {
+            img = resizeImage(img, params.scale, params.aspect_ratio);
+        }
+        else
+        {
+            img = resizeImage(img, 1.0f, params.aspect_ratio);
+        }
+
+        // Edge detection if enabled
+        std::vector<float> edge_magnitudes;
+        const std::vector<float> *edge_magnitudes_ptr = nullptr;
+
+        if (params.detect_edges)
+        {
+            edge_magnitudes = detectEdges(img);
+            edge_magnitudes_ptr = &edge_magnitudes;
+        }
+
+        // Generate ASCII text
+        std::string ascii_text = generateAsciiText(img, params, edge_magnitudes_ptr);
+
+        int currentHeight = img.height;
+        int currentWidth = img.width;
+
+        // Frame rendering with cleanup
+        std::cout << "\033[1;1H" << std::flush; // Go to top-left
+
+        // Clean up previous frame artifacts
+        if (prevHeight > 0 || prevWidth > 0)
+        {
+            // Clear extra lines if frame got shorter
+            if (currentHeight < prevHeight)
+            {
+                for (int i = currentHeight + 1; i <= prevHeight; i++)
+                {
+                    std::cout << "\033[" << i << ";1H\033[K";
+                }
+            }
+
+            // Clear extra columns if frame got narrower
+            if (currentWidth < prevWidth)
+            {
+                int maxHeight = std::max(currentHeight, prevHeight);
+                for (int line = 1; line <= maxHeight; line++)
+                {
+                    std::cout << "\033[" << line << ";" << (currentWidth + 1) << "H\033[K";
+                }
+            }
+
+            std::cout << "\033[1;1H";
+        }
+
+        // Display the frame
+        std::cout << ascii_text << std::flush;
+
+        // Update dimensions for next iteration
+        prevHeight = currentHeight;
+        prevWidth = currentWidth;
+        frameCount++;
+
+        // Timing control
+        auto currentTime = std::chrono::steady_clock::now();
+        auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastFrameTime).count();
+
+        if (elapsedTime < actualDelay)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(actualDelay - elapsedTime));
+        }
+
+        lastFrameTime = std::chrono::steady_clock::now();
+    }
+
+    // Restore input and exit
+    std::cout << "\033[?1l\033[>" << std::flush; // Normal cursor keys
+    std::cout << "\033[?1000l" << std::flush;    // Disable mouse capture
+    std::cout << "\033[?25h" << std::flush;      // Show cursor
+    std::cout << "\033[?1049l" << std::flush;    // Exit alternate screen
+
+    cap.release();
+    return true;
 }
