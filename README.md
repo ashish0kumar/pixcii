@@ -14,8 +14,8 @@ A feature-rich media-to-ASCII converter written in C++
 
 - Convert **media files to ASCII art** with **customizable character sets**
 - **Real-time video playback** with smooth frame-by-frame ASCII conversion
+- **Auto-fit by default** to terminal size for optimal viewing experience
 - Supports **grayscale** and **ANSI-colored** output for all media types
-- **Auto-fit** to terminal size for optimal viewing experience
 - Adjustable **brightness**, **scaling**, and **aspect ratio** correction
 - **Edge detection** using the **Sobel filter** for enhanced details
 - Option to **invert brightness** for different visual effects
@@ -81,20 +81,15 @@ pixcii --help
 
 ## Usage
 
-> [!NOTE]
-> You **may need to zoom in or out** in your terminal (`Ctrl +/-`) to **properly
-> view the default large-size ASCII art** <br> To avoid manual zooming, you can
-> use the **optional -t flag to auto-adjust** the art to fit your terminal size.
-
 ### Command-Line Options
 
 | Option                       | Description                                                   |
 | ---------------------------- | ------------------------------------------------------------- |
 | `-i, --input <path>`         | Path to input media file (required)                          |
 | `-o, --output <path>`        | Path to save output ASCII art (optional)                     |
-| `-t, --terminal-fit`         | Auto-fit to current terminal size                            |
 | `-c, --color`                | Enable colored ASCII output using ANSI escape codes          |
-| `-s, --scale <float>`        | Resize before conversion (default: 1.0)                      |
+| `-g, --original`             | Display media at original resolution                         |
+| `-s, --scale <float>`        | Scale media (default: 1.0) (ignored unless --original is used) |
 | `-a, --aspect-ratio <float>` | Adjust character aspect ratio (default: 2.0)                 |
 | `-b, --brightness <float>`   | Adjust brightness multiplier (default: 1.0)                  |
 | `-n, --invert`               | Invert brightness levels                                      |
@@ -111,46 +106,43 @@ pixcii --help
 
 ### Example Commands
 
-#### Static Media Processing
+#### Basic Usage
 
 ```bash
-# Convert media to ASCII art and save to a file
-pixcii -i input.jpg -o output.txt
+# Convert image
+pixcii -i image.jpg
 
-# Auto-fit to terminal size with color
-pixcii -i input.jpg -t -c
-
-# Use edge detection with custom brightness
-pixcii -i input.jpg -e -b 1.5
-```
-
-#### Dynamic Media Processing
-
-```bash
-# Play video as ASCII art
+# Video playback with color
 pixcii -i video.mp4 -c
 
-# Play GIF with custom frame delay
-pixcii -i animation.gif -d 200
+# GIF with edge detection
+pixcii -i animation.gif -e
+```
 
-# Auto-fit video to terminal with edge detection
-pixcii -i video.mp4 -t -e -c
+#### Original Size Mode
 
-# Play video with custom character set
-pixcii -i video.mp4 -m " .:-=+*#%@" -c
+```bash
+# Display at original resolution
+pixcii -i image.jpg -g
+
+# Original size with scaling
+pixcii -i large_image.png -g -s 0.5
+
+# Save ASCII art to file
+pixcii -i image.jpg -o artwork.txt
 ```
 
 #### Advanced Usage
 
 ```bash
-# Resize media before conversion for better performance
-pixcii -i large_video.mp4 -s 0.5 -c
+# Edge detection with color and brightness adjustment
+pixcii -i image.jpg -e -c -b 1.5
 
-# Invert colors for dark theme terminals
-pixcii -i video.mp4 -n -c
+# Custom frame delay for videos
+pixcii -i video.mp4 -d 150
 
-# Custom aspect ratio for wide media
-pixcii -i wide_video.mp4 -a 1.5 -t
+# Custom character set
+pixcii -i video.mp4 -m " .:-=+*#%@" -c
 ```
 
 ### Video Playback Controls
@@ -169,17 +161,11 @@ pixcii -i wide_video.mp4 -a 1.5 -t
 | ----------------------------- | ------------------------ |
 | ![Negative](./assets/neg.png) | ![Edge](./assets/ed.png) |
 
-## Performance Tips
-
-- Use **`-t` flag** for optimal terminal fitting
-- **Reduce scale** (`-s 0.5`) for large media files to improve performance
-- **Edge detection** (`-e`) provides better detail but requires more processing
-- **Colored output** (`-c`) enhances visual quality with minimal performance impact
-
 ## Roadmap
 
 - [x] Automatically detect the terminal size and scale the output to fit
 - [x] Media support with real-time playback
+- [x] Auto-fit by default with original size option
 - [ ] Implement different character sets optimized for different scenarios
 - [ ] Allow users to save and load parameter presets via config files
 - [ ] Performance optimizations for high-resolution media
