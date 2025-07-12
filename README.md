@@ -5,7 +5,7 @@ A feature-rich media-to-ASCII converter written in C++
 </p>
 
 <div align="center">
-<img src="./assets/doom_color.png" width="44%" />
+<img src="./assets/doom_color.png" width="44.1%" />
 <img src="https://github.com/user-attachments/assets/ff7da58e-b55a-47cb-a5c9-651ffac1a235" width="49%" />
 </div>
 
