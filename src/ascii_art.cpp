@@ -36,15 +36,47 @@ void processImage(const AsciiArtParams &params)
         img = resizeImageToTerminal(img, params.aspect_ratio, true);
     }
     // Otherwise, apply scaling based on the scale parameter
-    else if (params.scale != 1.0f)
-    {
-        // Resize image by the specified scale factor and adjust for aspect ratio
-        img = resizeImage(img, params.scale, params.aspect_ratio);
-    }
     else
     {
-        // Even if no explicit scaling, resize to apply aspect ratio correction if needed
-        img = resizeImage(img, 1.0f, params.aspect_ratio);
+        // Original size mode with optional scaling
+        if (params.scale != 1.0f)
+        {
+            // Calculate target dimensions preserving original aspect ratio
+            int target_width = static_cast<int>(img.width * params.scale);
+            int target_height = static_cast<int>(img.height * params.scale / params.aspect_ratio);
+
+            // Safety bounds checking
+            if (target_width > 1000 || target_height > 1000)
+            {
+                std::cerr << "Error: Scaled dimensions too large. Maximum 1000x1000." << std::endl;
+                return;
+            }
+
+            if (target_width < 10 || target_height < 10)
+            {
+                std::cerr << "Error: Scaled dimensions too small. Minimum 10x10." << std::endl;
+                return;
+            }
+
+            // Create new image structure with target dimensions
+            Image scaled_img;
+            scaled_img.width = target_width;
+            scaled_img.height = target_height;
+            scaled_img.channels = img.channels;
+            scaled_img.data.resize(target_width * target_height * img.channels);
+
+            // Use OpenCV for reliable resizing
+            cv::Mat src_mat(img.height, img.width,
+                            img.channels == 3 ? CV_8UC3 : CV_8UC1, img.data.data());
+            cv::Mat dst_mat;
+
+            cv::resize(src_mat, dst_mat, cv::Size(target_width, target_height), 0, 0, cv::INTER_LINEAR);
+
+            memcpy(scaled_img.data.data(), dst_mat.data,
+                   target_width * target_height * img.channels);
+
+            img = scaled_img;
+        }
     }
 
     // --- Edge Detection ---
@@ -81,6 +113,7 @@ void processImage(const AsciiArtParams &params)
 
     // Note: Image data (img.data) is automatically freed when img goes out of scope
     // Edge magnitudes vector is also freed when edge_magnitudes goes out of scope
+    // OpenCV Mat objects are automatically cleaned up by their destructors
 }
 
 // Calculate relevant information (brightness, color, edge_magnitude) for a single pixel

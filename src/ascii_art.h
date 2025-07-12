@@ -18,7 +18,7 @@ struct AsciiArtParams
     float scale = 1.0f;                     // Scale factor for resizing the image
     bool detect_edges = false;              // Use edge magnitude instead of brightness
     float aspect_ratio = 2.0f;              // Aspect ratio of ASCII characters (width / height)
-    bool auto_fit = false;                  // Automatically resize to fit the terminal window
+    bool auto_fit = true;                   // Automatically resize to fit terminal
 };
 
 // Information about a single pixel for character selection

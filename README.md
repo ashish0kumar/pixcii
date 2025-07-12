@@ -1,7 +1,7 @@
 <h1 align="center">pixcii</h1>
 
 <p align="center">
-A fast and feature-rich image-to-ASCII converter written in C++
+A feature-rich media-to-ASCII converter written in C++
 </p>
 
 <div align="center">
@@ -12,14 +12,16 @@ A fast and feature-rich image-to-ASCII converter written in C++
 
 ## Features
 
-- Convert **images to ASCII art** with **customizable character sets**
-- Supports **grayscale** and **ANSI-colored** output
+- Convert **media files to ASCII art** with **customizable character sets**
+- **Real-time video playback** with smooth frame-by-frame ASCII conversion
+- Supports **grayscale** and **ANSI-colored** output for all media types
 - **Auto-fit** to terminal size for optimal viewing experience
 - Adjustable **brightness**, **scaling**, and **aspect ratio** correction
 - **Edge detection** using the **Sobel filter** for enhanced details
 - Option to **invert brightness** for different visual effects
-- **Efficient** image handling for its complexity level
-- **Utilizes** `stb_image` libraries for robust **image loading** and high-quality **interpolation**
+- **Automatic frame rate detection** and matching for smooth video playback
+- **Efficient** media handling with optimized terminal rendering
+- **Utilizes** `stb_image` libraries for robust **media loading** and **OpenCV** for video processing
 
 ## Installation
 
@@ -27,33 +29,48 @@ A fast and feature-rich image-to-ASCII converter written in C++
 
 Ensure you have the following installed:
 
-- **C++11** or later
+- **C++17** or later
 - **CMake** (>= 3.10)
+- **OpenCV** (>= 4.0) for video and GIF support
 - `stb_image.h`, `stb_image_write.h`, and `stb_image_resize2.h` (already included)
+
+#### Installing OpenCV
+
+```bash
+# Ubuntu/Debian
+sudo apt-get install libopencv-dev
+
+# macOS (with Homebrew)
+brew install opencv
+
+# Windows (with vcpkg)
+vcpkg install opencv
+```
 
 ### Build Instructions
 
-```sh
+```bash
 # Clone the repository
 git clone https://github.com/ashish0kumar/pixcii.git
 cd pixcii
 
-# Create a build directory
-mkdir build && cd build
+# Quick build (recommended)
+chmod +x build.sh
+./build.sh
 
-# Configure and compile
+# Or manual build
+mkdir build && cd build
 cmake ..
-make
+make -j$(nproc)
 
 # Run the program
-./pixcii --help
+./build/pixcii --help
 ```
 
-**Move to a Directory in `$PATH`** <br> This allows you to run the program from
-anywhere
+#### Move to a Directory in `$PATH`
 
-```sh
-mv pixcii ~/.local/bin/
+```bash
+mv build/pixcii ~/.local/bin/
 
 # If ~/.local/bin/ is not in `$PATH:
 export PATH="$HOME/.local/bin:$PATH"
@@ -73,51 +90,74 @@ pixcii --help
 
 | Option                       | Description                                                   |
 | ---------------------------- | ------------------------------------------------------------- |
-| `-i, --input <path>`         | Path to the input image (required)                            |
-| `-o, --output <path>`        | Path to save output ASCII art (optional)                      |
-| `-t, --terminal-fit`         | Auto-fit image to current terminal size                       |
-| `-c, --color`                | Enable colored ASCII output using ANSI escape codes           |
-| `-s, --scale <float>`        | Resize image before conversion (default: 1.0)                 |
-| `-a, --aspect-ratio <float>` | Adjust character aspect ratio (default: 2.0)                  |
-| `-b, --brightness <float>`   | Adjust brightness multiplier (default: 1.0)                   |
+| `-i, --input <path>`         | Path to input media file (required)                          |
+| `-o, --output <path>`        | Path to save output ASCII art (optional)                     |
+| `-t, --terminal-fit`         | Auto-fit to current terminal size                            |
+| `-c, --color`                | Enable colored ASCII output using ANSI escape codes          |
+| `-s, --scale <float>`        | Resize before conversion (default: 1.0)                      |
+| `-a, --aspect-ratio <float>` | Adjust character aspect ratio (default: 2.0)                 |
+| `-b, --brightness <float>`   | Adjust brightness multiplier (default: 1.0)                  |
 | `-n, --invert`               | Invert brightness levels                                      |
-| `-e, --edges`                | Use edge detection instead of brightness for ASCII conversion |
-| `-m, --chars <string>`       | Custom ASCII character set (default: " .:-=+*#%@")            |
+| `-e, --edges`                | Use edge detection for ASCII conversion                      |
+| `-m, --chars <string>`       | Custom ASCII character set (default: " .:-=+*#%@")           |
+| `-d, --delay <ms>`           | Frame delay for videos in milliseconds (default: auto)      |
 | `-h, --help`                 | Show help message                                             |
+
+### Supported Formats
+
+**Images:** JPG, PNG, BMP, TGA, GIF (static)  
+**Videos:** MP4, AVI, MOV, MKV, WEBM, M4V, WMV, FLV  
+**Animated:** GIF
 
 ### Example Commands
 
-```sh
-# Convert an image to ASCII art and save to a file
+#### Static Media Processing
+
+```bash
+# Convert media to ASCII art and save to a file
 pixcii -i input.jpg -o output.txt
 
-# Auto-fit to terminal size
-pixcii -i input.jpg -t
+# Auto-fit to terminal size with color
+pixcii -i input.jpg -t -c
 
-# Enable colored ASCII output
-pixcii -i input.jpg -c
-
-# Resize image before conversion
-pixcii -i input.jpg -s 0.8
-
-# Adjust character aspect ratio
-pixcii -i input.jpg -a 3.0
-
-# Adjust brightness multiplier
-pixcii -i input.jpg -b 1.5
-
-# Invert brightness levels
-pixcii -i input.jpg -n
-
-# Use edge detection
-pixcii -i input.jpg -e
-
-# Use a custom ASCII character set
-pixcii -i input.jpg -m " .:-=+*#%@"
-
-# Show help message
-pixcii -h
+# Use edge detection with custom brightness
+pixcii -i input.jpg -e -b 1.5
 ```
+
+#### Dynamic Media Processing
+
+```bash
+# Play video as ASCII art
+pixcii -i video.mp4 -c
+
+# Play GIF with custom frame delay
+pixcii -i animation.gif -d 200
+
+# Auto-fit video to terminal with edge detection
+pixcii -i video.mp4 -t -e -c
+
+# Play video with custom character set
+pixcii -i video.mp4 -m " .:-=+*#%@" -c
+```
+
+#### Advanced Usage
+
+```bash
+# Resize media before conversion for better performance
+pixcii -i large_video.mp4 -s 0.5 -c
+
+# Invert colors for dark theme terminals
+pixcii -i video.mp4 -n -c
+
+# Custom aspect ratio for wide media
+pixcii -i wide_video.mp4 -a 1.5 -t
+```
+
+### Video Playback Controls
+
+- **`Ctrl+C`** - Stop video playback and exit
+- **Terminal zoom** (`Ctrl +/-`) - Adjust display size during playback
+- Videos automatically match original frame rate for smooth playback
 
 ### Example Outputs
 
@@ -129,14 +169,21 @@ pixcii -h
 | ----------------------------- | ------------------------ |
 | ![Negative](./assets/neg.png) | ![Edge](./assets/ed.png) |
 
+## Performance Tips
+
+- Use **`-t` flag** for optimal terminal fitting
+- **Reduce scale** (`-s 0.5`) for large media files to improve performance
+- **Edge detection** (`-e`) provides better detail but requires more processing
+- **Colored output** (`-c`) enhances visual quality with minimal performance impact
+
 ## Roadmap
 
-- [x] Automatically detect the terminal size and scale the output to fit.
-- [ ] Implement different character sets optimized for different scenarios (one
-      for density, one for clarity, etc)
-- [ ] Allow users to save and load parameter presets via config files.
-- [ ] Optimize performance for larger images
-- [ ] Video support
+- [x] Automatically detect the terminal size and scale the output to fit
+- [x] Media support with real-time playback
+- [ ] Implement different character sets optimized for different scenarios
+- [ ] Allow users to save and load parameter presets via config files
+- [ ] Performance optimizations for high-resolution media
+- [ ] Export ASCII animations to various formats
 
 ## Contributions
 

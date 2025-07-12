@@ -9,13 +9,15 @@
 // program_name: The name of the executable (argv[0])
 void displayHelp(const char *program_name)
 {
-    std::cout << "Usage: " << program_name << " [options]\n\n";
+    std::cout << "Usage: " << program_name << " -i <input> [options]\n\n";
+    std::cout << "Required:\n";
+    std::cout << "  -i, --input <path>          Path to input media file\n";
+    std::cout << "\n";
     std::cout << "Options:\n";
-    std::cout << "  -i, --input <path>          Path to input image/video/GIF (required)\n";
-    std::cout << "  -o, --output <path>         Path to save output (.txt) (optional)\n";
-    std::cout << "  -t, --terminal-fit          Auto-fit image to terminal size\n";
-    std::cout << "  -c, --color                 Enable colored output (ANSI escape codes)\n";
-    std::cout << "  -s, --scale <float>         Scale image (default: 1.0) (ignored if -t is used)\n";
+    std::cout << "  -o, --output <path>         Path to save output ASCII art\n";
+    std::cout << "  -c, --color                 Enable colored ASCII output using ANSI escape codes\n";
+    std::cout << "  -g, --original              Display media at original resolution\n";
+    std::cout << "  -s, --scale <float>         Scale media (default: 1.0) (ignored unless --original is used)\n";
     std::cout << "  -a, --aspect-ratio <float>  Set character aspect ratio (default: 2.0)\n";
     std::cout << "  -b, --brightness <float>    Adjust brightness multiplier (default: 1.0)\n";
     std::cout << "  -n, --invert                Invert brightness mapping\n";
@@ -25,9 +27,10 @@ void displayHelp(const char *program_name)
     std::cout << "  -h, --help                  Show this help message\n";
     std::cout << "\n";
     std::cout << "Examples:\n";
-    std::cout << "  " << program_name << " -i image.jpg -t -c\n";
+    std::cout << "  " << program_name << " -i image.jpg\n";
     std::cout << "  " << program_name << " -i video.mp4 -c\n";
     std::cout << "  " << program_name << " -i animation.gif -d 200\n";
+    std::cout << "  " << program_name << " -i large_image.png -g -s 0.5\n";
 }
 
 // Main function - entry point of the program
@@ -40,7 +43,6 @@ int main(int argc, char *argv[])
         int frameDelay = 100;
 
         // --- Command Line Parsing ---
-        // Enhanced version of your existing parsing logic with video support
         for (int i = 1; i < argc; i++) // Start from 1 to skip the program name (argv[0])
         {
             std::string arg = argv[i]; // Get the current argument as a string
@@ -205,7 +207,11 @@ int main(int argc, char *argv[])
                     return 1;
                 }
             }
-            // Existing boolean flags (unchanged)
+            // Boolean flags
+            else if (arg == "-g" || arg == "--original")
+            {
+                params.auto_fit = false; // Disable auto-fit for original sizing
+            }
             else if (arg == "-c" || arg == "--color")
             {
                 params.color = true; // Set the color flag
@@ -217,10 +223,6 @@ int main(int argc, char *argv[])
             else if (arg == "-e" || arg == "--edges")
             {
                 params.detect_edges = true; // Set the detect_edges flag
-            }
-            else if (arg == "-t" || arg == "--terminal-fit")
-            {
-                params.auto_fit = true; // Set the auto_fit flag
             }
             else if (arg == "-h" || arg == "--help")
             {
