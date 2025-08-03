@@ -1,4 +1,3 @@
-// Define the implementations for the stb image libraries in this file
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STB_IMAGE_RESIZE2_IMPLEMENTATION
@@ -159,8 +158,7 @@ std::vector<uint8_t> rgbToGrayscale(const Image &img)
             grayscale[static_cast<size_t>(y * img.width + x)] = static_cast<uint8_t>( // Use size_t for index calculation
                 constants::GRAYSCALE_WEIGHT_R * r +
                 constants::GRAYSCALE_WEIGHT_G * g +
-                constants::GRAYSCALE_WEIGHT_B * b
-            );
+                constants::GRAYSCALE_WEIGHT_B * b);
         }
     }
 
