@@ -14,6 +14,7 @@ A feature-rich media-to-ASCII converter written in C++
 ## Features
 
 - Convert **media files to ASCII art** with **customizable character sets**
+- **URL support** for downloading images and videos directly from web URLs
 - **Real-time video playback** with smooth frame-by-frame ASCII conversion
 - **Auto-fit by default** to terminal size for optimal viewing experience
 - Supports **grayscale** and **ANSI-colored** output for all media types
@@ -33,19 +34,21 @@ Ensure you have the following installed:
 - **C++17** or later
 - **CMake** (>= 3.10)
 - **OpenCV** (>= 4.0) for video and GIF support
+- **curl** or **wget** for URL download support
 - `stb_image.h`, `stb_image_write.h`, and `stb_image_resize2.h` (already included)
 
 #### Installing OpenCV
 
 ```bash
 # Ubuntu/Debian
-sudo apt-get install libopencv-dev
+sudo apt-get install libopencv-dev curl
 
 # macOS (with Homebrew)
-brew install opencv
+brew install opencv curl
 
 # Windows (with vcpkg)
 vcpkg install opencv
+# curl is usually pre-installed on Windows 10+
 ```
 
 ### Build Instructions
@@ -86,7 +89,7 @@ pixcii --help
 
 | Option                       | Description                                                   |
 | ---------------------------- | ------------------------------------------------------------- |
-| `-i, --input <path>`         | Path to input media file (required)                          |
+| `-i, --input <path¦url>`         | Path to input media file or URL (required)                          |
 | `-o, --output <path>`        | Path to save output ASCII art (optional)                     |
 | `-c, --color`                | Enable colored ASCII output using ANSI escape codes          |
 | `-g, --original`             | Display media at original resolution                         |
@@ -103,7 +106,8 @@ pixcii --help
 
 **Images:** JPG, PNG, BMP, TGA, GIF (static)  
 **Videos:** MP4, AVI, MOV, MKV, WEBM, M4V, WMV, FLV  
-**Animated:** GIF
+**Animated:** GIF  
+**Input Sources:** Local files and web URLs
 
 ### Example Commands
 
@@ -118,6 +122,22 @@ pixcii -i video.mp4 -c
 
 # GIF with edge detection
 pixcii -i animation.gif -e
+```
+
+#### URL Processing
+
+```bash
+# Process image from URL
+pixcii -i https://example.com/image.jpg -c
+
+# Process video from URL
+pixcii -i https://example.com/video.mp4 -e
+
+# URLs without extensions (auto-detects content type)
+pixcii -i "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR..." -c
+
+# Download and save ASCII art from URL
+pixcii -i https://example.com/photo.png -o downloaded_ascii.txt
 ```
 
 #### Original Size Mode
@@ -167,6 +187,7 @@ pixcii -i video.mp4 -m " .:-=+*#%@" -c
 - [x] Automatically detect the terminal size and scale the output to fit
 - [x] Media support with real-time playback
 - [x] Auto-fit by default with original size option
+- [x] URL support with smart content-type detection
 - [ ] Implement different character sets optimized for different scenarios
 - [ ] Allow users to save and load parameter presets via config files
 - [ ] Performance optimizations for high-resolution media
