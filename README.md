@@ -174,9 +174,13 @@ pixcii -i video.mp4 -m " .:-=+*#%@" -c
 
 ### Examples
 
-| Normal                	   | Colored             		| Negative                       | Edges                    |
-| ---------------------------- | -------------------------- | ------------------------------ | ------------------------ |
-| ![Normal](./assets/norm.png) | ![Color](./assets/col.png) | ![Negative](./assets/neg.png)  | ![Edge](./assets/ed.png) |
+| Normal                	   | Colored                    | Edges                    |
+| ---------------------------- | -------------------------- | ------------------------ |
+| ![Normal](./assets/norm.png) | ![Color](./assets/col.png) | ![Edge](./assets/ed.png) |
+| ![](https://github.com/user-attachments/assets/567be0be-27e7-42dc-8133-1f62bdcf5c25) | ![](https://github.com/user-attachments/assets/f71c2e11-ecb2-4d60-ac57-a302ef27ca3c) | ![](https://github.com/user-attachments/assets/a5bcafb0-19df-49a2-b8f5-ddb66eb4077a) |
+| ![](https://github.com/user-attachments/assets/1fd6e971-90f1-4813-b82c-05cd4c79e81e) | ![](https://github.com/user-attachments/assets/f4121183-2ffa-48a3-8bf8-3dab77c47d48) | ![](https://github.com/user-attachments/assets/c52b8a2e-4abb-4166-b05f-e06650913c90) | 
+
+
 
 ## Roadmap
 
