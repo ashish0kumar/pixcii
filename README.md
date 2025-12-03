@@ -5,9 +5,8 @@ A feature-rich media-to-ASCII converter written in C++
 </p>
 
 <div align="center">
+<img src="https://github.com/user-attachments/assets/6896ca2f-2cfa-4543-9994-d8a91c9672ea" width="50%" />
 <img src="./assets/doom_color.png" width="45%" />
-<!-- <img src="https://github.com/user-attachments/assets/ff7da58e-b55a-47cb-a5c9-651ffac1a235" width="49%" /> -->
-<img src="https://github.com/user-attachments/assets/0e58ad22-0f1b-4684-a511-711256bf2efa" width="50%" />
 </div>
 
 ---
@@ -173,15 +172,11 @@ pixcii -i video.mp4 -m " .:-=+*#%@" -c
 - **Terminal zoom** (`Ctrl +/-`) - Adjust display size during playback
 - Videos automatically match original frame rate for smooth playback
 
-### Example Outputs
+### Examples
 
-| Normal Output                | Colored Output             |
-| ---------------------------- | -------------------------- |
-| ![Normal](./assets/norm.png) | ![Color](./assets/col.png) |
-
-| Negative Output               | Edge Detection Output    |
-| ----------------------------- | ------------------------ |
-| ![Negative](./assets/neg.png) | ![Edge](./assets/ed.png) |
+| Normal                	   | Colored             		| Negative                       | Edges                    |
+| ---------------------------- | -------------------------- | ------------------------------ | ------------------------ |
+| ![Normal](./assets/norm.png) | ![Color](./assets/col.png) | ![Negative](./assets/neg.png)  | ![Edge](./assets/ed.png) |
 
 ## Roadmap
 
